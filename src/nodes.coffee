@@ -243,7 +243,7 @@ exports.Block = class Block extends Base
       provides.sort()
       providesJs = ("goog.provide('#{name}');" for name in provides)
       providesJs = providesJs.join '\n'
-      
+
       includes = o.google.includes
       comparator = (a, b) -> a.name.localeCompare(b.name)
       includes.sort comparator
@@ -254,7 +254,7 @@ exports.Block = class Block extends Base
       includesJs = ("goog.require('#{inc.name}');" for inc in includes \
           when provides.indexOf(inc.name) == -1)
       includesJs = includesJs.join '\n'
-      
+
       aliases = (inc for inc in includes when inc.alias)
       aliases.sort comparator
       idt = @tab + TAB
@@ -263,13 +263,13 @@ exports.Block = class Block extends Base
 
       code = """
              #{providesJs}
-             
+
              #{includesJs}
-             
+
              goog.scope(function() {
              #{aliases}
              #{code}
-             
+
              }); // close goog.scope()
              """
     if o.bare then code else "(function() {\n#{code}\n}).call(this);\n"
@@ -635,7 +635,7 @@ exports.Extends = class Extends extends Base
     unless o.google
       utility 'hasProp'
     if o.google
-      inheritsFunction = new Value(new Literal 'goog.inherits') 
+      inheritsFunction = new Value(new Literal 'goog.inherits')
     else
       inheritsFunction = new Value(new Literal utility 'extends')
     new Call(inheritsFunction, [@child, @parent]).compile o
@@ -975,7 +975,7 @@ exports.Assign = class Assign extends Base
   children: ['variable', 'value']
 
   isStatement: (o) ->
-    o?.level is LEVEL_TOP and @context and "?" in @context
+    o?.level is LEVEL_TOP and @context? and "?" in @context
 
   assigns: (name) ->
     @[if @context is 'object' then 'value' else 'variable'].assigns name
@@ -1173,13 +1173,13 @@ exports.Code = class Code extends Base
              #{@tab}/**
              #{@tab} * @constructor
              #{extendsJsDoc}#{@tab} */
-             #{@tab}#{@name} = function""" 
+             #{@tab}#{@name} = function"""
     else
       code  = 'function'
       code  += ' ' + @name if @ctor
     code  += '(' + vars.join(', ') + ') {'
     code  += "\n#{ @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
-    
+
     if isGoogleConstructor
       code += '};'
       if @ctorParent
@@ -1533,10 +1533,10 @@ exports.Include = class Include extends Base
 
 # A chain of identifiers that form a namespace.
 # For example, the namespace goog.dom.TagName is a chain of three identifiers:
-# TagName, dom, and goog. 
+# TagName, dom, and goog.
 exports.Namespace = class Namespace extends Base
   constructor: (@identifier, @namespace = null) ->
-  
+
   flatten: ->
     ns = @namespace
     ids = [@identifier]
