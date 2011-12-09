@@ -17,7 +17,7 @@ CoffeeScript   = require './coffee-script'
 helpers.extend CoffeeScript, new EventEmitter
 
 printLine = (line) -> process.stdout.write line + '\n'
-printWarn = (line) -> process.binding('stdio').writeError line + '\n'
+printWarn = (line) -> process.stderr.write line + '\n'
 
 # The help banner that is printed when `coffee` is called without arguments.
 BANNER = '''
@@ -88,7 +88,7 @@ compileScripts = ->
       path.exists source, (exists) ->
         if topLevel and not exists and source[-7..] isnt '.coffee'
             return compile "#{source}.coffee", sourceIndex, topLevel
-                
+
         throw new Error "File not found: #{source}" if topLevel and not exists
         fs.stat source, (err, stats) ->
           throw err if err
