@@ -133,25 +133,11 @@ class exports.Rewriter
   # deal with them.
   addImplicitParentheses: ->
     noCall = no
-
-    # Inserts a CALL_END token into the stream at i (or at i+1 if token is an
-    # OUTDENT token). The new token will have the same line number as the
-    # specified token.
     action = (token, i) ->
       idx = if token[0] is 'OUTDENT' then i + 1 else i
       @tokens.splice idx, 0, ['CALL_END', ')', token[2]]
-
     @scanTokens (token, i, tokens) ->
       tag     = token[0]
-
-      # Never add implicit parentheses within PARAM_START and PARAM_END.
-      # This messes with the Closure type annotations.
-      if tag == 'PARAM_START'
-        return @detectEnd(
-            i + 1,
-            (token) -> token == 'PARAM_END',
-            (token, idx) -> idx - i)
-
       noCall  = yes if tag in ['CLASS', 'IF']
       [prev, current, next] = tokens[i - 1 .. i + 1]
       callObject  = not noCall and tag is 'INDENT' and

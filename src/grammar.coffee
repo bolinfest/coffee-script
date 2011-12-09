@@ -202,13 +202,12 @@ grammar =
     o 'ParamVar = Expression',                  -> new Param $1, $3
   ]
 
-  # Function Parameters
+ # Function Parameters
   ParamVar: [
     o 'Identifier'
     o 'ThisProperty'
     o 'Array'
     o 'Object'
-    o 'IDENTIFIER IDENTIFIER',                  -> new TypeExpression $1, $2
   ]
 
   # A splat that occurs outside of a parameter list.

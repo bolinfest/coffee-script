@@ -1124,7 +1124,7 @@ exports.Code = class Code extends Base
   isStatement: -> !!@ctor
 
   jumps: NO
-  
+
   # Compilation creates a new scope unless explicitly asked to share with the
   # outer scope. Handles splat parameters in the parameter list by peeking at
   # the JavaScript `arguments` object. If the function is bound with the `=>`
@@ -1160,35 +1160,26 @@ exports.Code = class Code extends Base
     o.scope.parameter vars[i] = v.compile o for v, i in vars unless splats
     @body.makeReturn() unless wasEmpty or @noReturn
     idt   = o.indent
-    
-    # This is an array of JSDoc strings that should be prepended to the
-    # function declaration.
-    jsDoc = ("@param {#{p.name.typeExpression}} #{p.name.identifier}" for \
-        p in @params when p.hasTypeExpression())
-
     isGoogleConstructor = o.google and @ctor
     if isGoogleConstructor
-      jsDoc.push '@constructor'
       if @ctorParent
         parentClassName = @ctorParent.compile o
         o.google.includes.push {name: parentClassName, alias: null}
-        jsDoc.push "@extends {#{parentClassName}}"
+        extendsJsDoc = "#{@tab} * @extends {#{parentClassName}}\n"
+      else
+        extendsJsDoc = ''
       o.google.provides.push @name
-      code = "#{@name} = function" 
+      code = """
+             #{@tab}/**
+             #{@tab} * @constructor
+             #{extendsJsDoc}#{@tab} */
+             #{@tab}#{@name} = function""" 
     else
       code  = 'function'
       code  += ' ' + @name if @ctor
     code  += '(' + vars.join(', ') + ') {'
     code  += "\n#{ @body.compileWithDeclarations o }\n#{@tab}" unless @body.isEmpty()
-
-    # If there is any JSDoc associated with the function,
-    # prepend it to the function declaration.
-    # TODO: If the declaration is part of an assignment expression, then move
-    # the JSDoc before the assignment.
-    if jsDoc.length
-      jsDocLines = ("#{@tab} * #{line}" for line in jsDoc)
-      code = '/**\n' + jsDocLines.join('\n') + '\n */\n' + code
-
+    
     if isGoogleConstructor
       code += '};'
       if @ctorParent
@@ -1217,14 +1208,8 @@ exports.Param = class Param extends Base
 
   children: ['name', 'value']
 
-  hasTypeExpression: ->
-    @name instanceof TypeExpression
-
   compile: (o) ->
-    if @hasTypeExpression()
-      @name.identifier
-    else
-      @name.compile o, LEVEL_LIST
+    @name.compile o, LEVEL_LIST
 
   asReference: (o) ->
     return @reference if @reference
@@ -1240,18 +1225,6 @@ exports.Param = class Param extends Base
 
   isComplex: ->
     @name.isComplex()
-
-#### TypeExpression
-
-# A type expression, as explained at
-# http://code.google.com/closure/compiler/docs/js-for-compiler.html#types
-exports.TypeExpression = class TypeExpression extends Base
-  constructor: (@typeExpression, @identifier) ->
-  
-  compileNode: (o) ->
-    @identifier
-
-  isComplex: NO
 
 #### Splat
 
