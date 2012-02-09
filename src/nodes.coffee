@@ -1190,7 +1190,11 @@ exports.Code = class Code extends Base
       code += '}'
 
     return @tab + code if @ctor
-    return utility('bind') + "(#{code}, #{@context})" if @bound
+    if @bound
+      if o.google
+        return "goog.bind(#{code}, #{@context})"
+      else
+        return utility('bind') + "(#{code}, #{@context})"
     if @front or (o.level >= LEVEL_ACCESS) then "(#{code})" else code
 
   # Short-circuit `traverseChildren` method to prevent it from crossing scope boundaries
